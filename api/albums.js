@@ -16,12 +16,23 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: 'API token not configured' });
     }
 
-    // Fetch all records from Airtable
+    // Fetch all records from Airtable with pagination
     let allRecords = [];
     let offset = null;
+    let pageCount = 0;
 
     do {
-      const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE_NAME)}${offset ? `?offset=${offset}` : ''}`;
+      pageCount++;
+      const params = new URLSearchParams({
+        pageSize: '100' // Max page size
+      });
+      if (offset) {
+        params.append('offset', offset);
+      }
+      
+      const url = `https://api.airtable.com/v0/${BASE_ID}/${encodeURIComponent(TABLE_NAME)}?${params.toString()}`;
+      
+      console.log(`Fetching page ${pageCount}...`);
       
       const response = await fetch(url, {
         headers: {
@@ -34,9 +45,12 @@ export default async function handler(req, res) {
       }
 
       const data = await response.json();
+      console.log(`Page ${pageCount}: Got ${data.records.length} records, offset: ${data.offset || 'none'}`);
       allRecords = allRecords.concat(data.records);
       offset = data.offset;
     } while (offset);
+    
+    console.log(`Total records fetched: ${allRecords.length}`);
 
     // Transform Airtable records to match the format expected by VinylVault
     const albums = allRecords.map(record => ({
