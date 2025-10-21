@@ -1,0 +1,6 @@
+{
+  "name": "vinyl-vault-api",
+  "version": "1.0.0",
+  "description": "Serverless API for Vinyl Vault collection",
+  "type": "module"
+}
